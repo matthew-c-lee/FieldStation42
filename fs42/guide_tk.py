@@ -8,11 +8,13 @@ from fs42.guide_builder import GuideBuilder
 from fs42.station_manager import StationManager
 
 class GuideWindowConf:
+    def __init__(self):
+        root = tk.Tk()
+        root.withdraw()
 
-    def __init__(self, w=720, h=480):
         self.fullscreen = True
-        self.width = w
-        self.height= h
+        self.width = root.winfo_screenwidth()
+        self.height= root.winfo_screenheight()
 
         self.top_bg = "blue3"
         self.bottom_bg = "blue4"
