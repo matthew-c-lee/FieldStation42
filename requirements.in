@@ -5,3 +5,6 @@ textual
 ffmpeg-python
 fastapi
 uvicorn
+PyOpenGL 
+PyOpenGL_accelerate 
+glfw

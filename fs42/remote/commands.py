@@ -6,6 +6,7 @@ import traceback
 SOCKET_PATH = "runtime/channel.socket"
 STATUS_SOCKET_PATH = "runtime/play_status.socket"  # Update with real path
 
+
 def read_status():
     try:
         with open(STATUS_SOCKET_PATH, "r") as fifo:
@@ -20,6 +21,7 @@ def read_status():
         traceback.print_exc()
         return {"channel": -1, "name": ""}
 
+
 def write_command(message: dict):
     """Takes a dictionary command"""
     message = json.dumps(message) + "\n"
@@ -32,7 +34,7 @@ def write_command(message: dict):
         fifo.flush()
 
     # Give the player a moment to update status
-    time.sleep(.25)
+    time.sleep(0.25)
 
     status = read_status()
     return status

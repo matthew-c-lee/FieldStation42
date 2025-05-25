@@ -1,4 +1,3 @@
-
 from textual.app import Screen, ComposeResult
 from textual.widgets import Button, Header, Markdown
 from textual.containers import Horizontal
@@ -10,8 +9,10 @@ from fs42.ux.dialogs import QuitScreen
 from fs42.ux.catalog_screen import CatalogScreen
 from fs42.ux.schedule_screen import ScheduleScreen
 
+
 class WelcomeScreen(Screen):
     CSS_PATH = "welcome_screen.tcss"
+
     def compose(self) -> ComposeResult:
         yield Header("Welcome to Station42")
         self.md = Markdown("LOADING...")
@@ -20,19 +21,18 @@ class WelcomeScreen(Screen):
             Button("Manage Catalogs", id="manage_catalog", variant="success"),
             Button("Manage Schedules", id="manage_schedule", variant="primary"),
             Button("Exit Application", id="exit", variant="warning"),
-            id="welcomebutton"
+            id="welcomebutton",
         )
-        
-    def on_button_pressed(self, event: Button.Pressed) -> None:
 
+    def on_button_pressed(self, event: Button.Pressed) -> None:
         match event.button.id:
-            case 'manage_catalog':                        
+            case "manage_catalog":
                 self.app.push_screen(CatalogScreen())
-            case 'manage_schedule':
+            case "manage_schedule":
                 self.app.push_screen(ScheduleScreen())
-            case 'exit':
+            case "exit":
                 self.app.push_screen(QuitScreen())
-    
+
     def on_mount(self) -> None:
         self.title = "FieldStation42"
         self.sub_title = "Control Panel"
@@ -48,10 +48,10 @@ class WelcomeScreen(Screen):
         text = "# FieldStation42 Summary\n"
 
         for station in StationManager().stations:
-            network_name = station['network_name']
+            network_name = station["network_name"]
             text += f"## Network: {network_name} - Channel #{station['channel_number']} ({station['network_type']})\n"
-            
-            if 'catalog_path' in station:
+
+            if "catalog_path" in station:
                 catalog_exists = False
                 try:
                     cat = ShowCatalog(station, False)
@@ -70,7 +70,7 @@ class WelcomeScreen(Screen):
                     else:
                         text += "* Schedule not found. After building the catalog, click 'Manage Schedules' to generate schedules."
             else:
-                if station['network_type'] == "guide":
+                if station["network_type"] == "guide":
                     text += "* Guide channels do not have catalogs or schedules\n"
                 else:
                     text += "* Catalog not configured - check channel configuration."

@@ -1,13 +1,11 @@
-
 class SequenceEntry:
-
     def __init__(self, fpath, scheduled=[], last_played=None):
         self.fpath = str(fpath)
         self.next_scheduled = scheduled
         self.last_played = last_played
 
-class SeriesIndex:
 
+class SeriesIndex:
     def __init__(self, tag_path):
         self.tag_path = tag_path
         self._episodes: list[SequenceEntry] = []
@@ -22,9 +20,8 @@ class SeriesIndex:
             entry = SequenceEntry(file)
             self._episodes.append(entry)
 
-        #explicitely sort them by file path for alpha-numeric ordering:
+        # explicitely sort them by file path for alpha-numeric ordering:
         self._episodes = sorted(self._episodes, key=lambda entry: entry.fpath)
-        
 
     def get_series_length(self):
         return len(self._episodes)
@@ -33,11 +30,11 @@ class SeriesIndex:
         if self._index < 0 or self._index >= len(self._episodes):
             self._index = 0
         else:
-            self._index+=1
-            self._index = 0 if self._index >= len(self._episodes) else self._index 
-        
+            self._index += 1
+            self._index = 0 if self._index >= len(self._episodes) else self._index
+
         return self._episodes[self._index].fpath
-    
+
     def get_current(self):
         return self._episodes[self._index].fpath
 
@@ -46,15 +43,13 @@ class SeriesIndex:
             if self._episodes[i].fpath == fpath:
                 self._index = i
                 break
-        
-        #now, we want to go one episode earlier, so that this is the next episode
+
+        # now, we want to go one episode earlier, so that this is the next episode
         self._index -= 1
-        #wrap back to the end if we went negative
-        self._index = (len(self._episodes)-1) if self._index < 0 else self._index
-        
+        # wrap back to the end if we went negative
+        self._index = (len(self._episodes) - 1) if self._index < 0 else self._index
 
     def _by_fpath(self, fpath):
         for episode in self._episodes:
             if episode.fpath == fpath:
                 return fpath
-            

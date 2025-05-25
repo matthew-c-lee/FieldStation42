@@ -1,18 +1,27 @@
 import glfw
-from OpenGL.GL import *
+from OpenGL import GL
 from PIL import Image, ImageDraw, ImageFont
 
 DEFAULT_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 __font_objects = {}
 
+
 class Text(object):
-    def __init__(self, window, string="",expansion_factor=1.0, font_size=32, color=(255,255,255,255), font=None):
+    def __init__(
+        self,
+        window,
+        string="",
+        expansion_factor=1.0,
+        font_size=32,
+        color=(255, 255, 255, 255),
+        font=None,
+    ):
         self._string = string
         self._font_size = font_size
         self._color = color
         self._font = font
-        self.expansion_factor = expansion_factor 
+        self.expansion_factor = expansion_factor
         self.window = window
         self.window_width, self.window_height = glfw.get_framebuffer_size(window)
         self.text_texture = None
@@ -64,15 +73,14 @@ class Text(object):
 
     def render_text_texture(self):
         if self.text_texture is not None:
-            glDeleteTextures(self.text_texture)
+            GL.glDeleteTextures(self.text_texture)
 
-        self.text_texture, self.tex_size = create_text_texture(self.string, 
-                                                               self.font_size, 
-                                                               self.font, 
-                                                               self.color)
+        self.text_texture, self.tex_size = create_text_texture(
+            self.string, self.font_size, self.font, self.color
+        )
 
     def draw(self, x, y):
-        glBindTexture(GL_TEXTURE_2D, self.text_texture)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.text_texture)
 
         # Set desired position (in NDC: -1 to 1)
         h = self.height
@@ -82,21 +90,26 @@ class Text(object):
         draw_gl_quad_textured(x, y, w, h)
 
     def __del__(self):
-        glDeleteTextures(self.text_texture)
+        GL.glDeleteTextures(self.text_texture)
+
 
 def draw_gl_quad_textured(x, y, w, h):
-    glBegin(GL_QUADS)
-    glColor4f(1, 1, 1, 1)
-    glTexCoord2f(0, 1); glVertex2f(x, y)
-    glTexCoord2f(1, 1); glVertex2f(x + w, y)
-    glTexCoord2f(1, 0); glVertex2f(x + w, y + h)
-    glTexCoord2f(0, 0); glVertex2f(x, y + h)
-    glEnd()
+    GL.glBegin(GL.GL_QUADS)
+    GL.glColor4f(1, 1, 1, 1)
+    GL.glTexCoord2f(0, 1)
+    GL.glVertex2f(x, y)
+    GL.glTexCoord2f(1, 1)
+    GL.glVertex2f(x + w, y)
+    GL.glTexCoord2f(1, 0)
+    GL.glVertex2f(x + w, y + h)
+    GL.glTexCoord2f(0, 0)
+    GL.glVertex2f(x, y + h)
+    GL.glEnd()
 
-def create_text_texture(text, font_size=32, font=None, color = (255, 255, 255, 255)):
+
+def create_text_texture(text, font_size=32, font=None, color=(255, 255, 255, 255)):
     if font is None:
         font = DEFAULT_FONT
-
 
     if (font, font_size) not in __font_objects:
         font = ImageFont.truetype(font, font_size)
@@ -113,14 +126,24 @@ def create_text_texture(text, font_size=32, font=None, color = (255, 255, 255, 2
     # Now create the actual image
     image = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    draw.text((-bbox[0], -bbox[1]), text, font=font, fill=color)  
+    draw.text((-bbox[0], -bbox[1]), text, font=font, fill=color)
 
     tex_data = image.tobytes("raw", "RGBA", 0, 1)
-    tex = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_2D, tex)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    tex = GL.glGenTextures(1)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
+    GL.glTexImage2D(
+        GL.GL_TEXTURE_2D,
+        0,
+        GL.GL_RGBA,
+        image.width,
+        image.height,
+        0,
+        GL.GL_RGBA,
+        GL.GL_UNSIGNED_BYTE,
+        tex_data,
+    )
+    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
     return tex, (image.width, image.height)
 
 
@@ -131,13 +154,24 @@ def load_texture(path):
     image_data = image.tobytes()
     width, height = image.size
 
-    texture = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_2D, texture)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    texture = GL.glGenTextures(1)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, texture)
+    GL.glTexImage2D(
+        GL.GL_TEXTURE_2D,
+        0,
+        GL.GL_RGBA,
+        width,
+        height,
+        0,
+        GL.GL_RGBA,
+        GL.GL_UNSIGNED_BYTE,
+        image_data,
+    )
+    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
 
     return texture, width, height
+
 
 def create_window():
     # --------------------------
@@ -157,16 +191,19 @@ def create_window():
     glfw.window_hint(glfw.FOCUSED, glfw.TRUE)
     glfw.window_hint(glfw.AUTO_ICONIFY, glfw.FALSE)
     glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
-    window = glfw.create_window(mode.size.width, mode.size.height, "FieldStation42 OSD", monitor, None)
+    window = glfw.create_window(
+        mode.size.width, mode.size.height, "FieldStation42 OSD", monitor, None
+    )
     glfw.make_context_current(window)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     # Enable blending for alpha
-    glEnable(GL_BLEND)
-    glEnable(GL_TEXTURE_2D)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glEnable(GL.GL_TEXTURE_2D)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
     return window
 
-def clear_screen(color = (0, 0, 0, 0)):
-    glClearColor(*color)
-    glClear(GL_COLOR_BUFFER_BIT)
+
+def clear_screen(color=(0, 0, 0, 0)):
+    GL.glClearColor(*color)
+    GL.glClear(GL.GL_COLOR_BUFFER_BIT)
