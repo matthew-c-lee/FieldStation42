@@ -1,6 +1,6 @@
 from enum import Enum
 import logging
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s', level=logging.INFO)
+
 import multiprocessing
 import time
 import datetime
@@ -14,6 +14,8 @@ from fs42.reception import ReceptionStatus
 from fs42.liquid_manager import LiquidManager, PlayPoint
 from fs42.station_manager import StationManager
 
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s', level=logging.INFO)
+
 def check_channel_socket():
     channel_socket = StationManager().server_conf['channel_socket']
     r_sock = open(channel_socket, "r")
@@ -25,12 +27,12 @@ def check_channel_socket():
         return PlayerOutcome(PlayStatus.CHANNEL_CHANGE, contents)
     return None
 
-def update_status_socket(status, network_name, channel, title=None):
+def update_status_socket(status, network_name, channel, title=None,timestamp="%Y-%m-%dT%H:%M:%S"):
     status_obj = {
         "status": status,
         "network_name": network_name,
         "channel_number": channel,
-        "timestamp": datetime.datetime.now().isoformat()
+        "timestamp": datetime.datetime.now().strftime(timestamp)
     }
     if title is not None:
         status_obj["title"] = title
@@ -93,12 +95,13 @@ class StationPlayer:
         basename = os.path.basename(file_path) # Added
         title, _ = os.path.splitext(basename) # Added
         if self.station_config:
-            update_status_socket("playing", self.station_config['network_name'], self.station_config['channel_number'], title)
+            ts_format = os.environ.get('FS42_TS', "%Y-%m-%dT%H:%M:%S")
+            update_status_socket("playing", self.station_config['network_name'], self.station_config['channel_number'], title, timestamp=ts_format)
         else:
             self._l.warning("station_config not available in play_file, cannot update status socket with title.")
 
         self.mpv.play(file_path)
-        
+
         if 'panscan' in self.station_config:
             self.mpv.panscan = self.station_config['panscan']
 
@@ -134,7 +137,7 @@ class StationPlayer:
     def play_slot(self , network_name, when):
         liquid = LiquidManager()
         play_point = liquid.get_play_point(network_name, when)
-        if play_point == None:
+        if play_point is None:
             self.current_playing_file_path = None
             return PlayerOutcome(PlayStatus.FAILED)
         return self._play_from_point(play_point)
