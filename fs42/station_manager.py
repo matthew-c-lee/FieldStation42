@@ -3,12 +3,68 @@ import logging
 import os
 from fs42.slot_reader import SlotReader
 import glob
+from pathlib import Path
+from pydantic import BaseModel, Field, model_validator
+
+class StationConfig(BaseModel):
+    channel_number: int
+    network_name: str
+    
+    catalog_path: Path
+    content_dir: Path
+    commercial_dir: Path
+    bump_dir: Path
+
+    network_type: str = "standard"
+    schedule_increment: float = 30.0
+    break_strategy: str = "standard"
+    commercial_free: bool = False
+    clip_shows: list[str] = []
+    break_duration: int = 120
+
+    sign_off_video: Path
+    off_air_video: Path
+    standby_image: Path
+
+    @model_validator(mode="after")
+    def validate_all_files_exist(self):
+        required_fields = ["sign_off_video", "off_air_video", "standby_image"]
+
+        for field in required_fields:
+            path = getattr(self, field, None)
+            if not path or not path.exists():
+                raise FileNotFoundError(f"{field} is missing or does not exist: {path}")
+        return self
+    
+class MainConfig(BaseModel):
+    channel_socket
+    pass
+
+class DayInfo(BaseModel):
+    start_hour: int
+    end_hour: int
+
+    @model_validator(mode="after")
+    def validate_hours(self):
+        if not (0 <= self.start_hour <= 23):
+            raise ValueError("start_hour must be between 0 and 23")
+        if not (0 <= self.end_hour <= 23):
+            raise ValueError("end_hour must be between 0 and 23")
+        return self
+    
+    @property
+    def hours(self) -> list[int]:
+        """Returns the list of hours this day part covers, including wraparound."""
+        if self.end_hour > self.start_hour:
+            return list(range(self.start_hour, self.end_hour))
+        return list(range(self.start_hour, 24)) + list(range(0, self.end_hour))
+
 
 class StationManager(object):
 
     __we_are_all_one = {}
     
-    stations = []
+    stations: list[StationConfig] = []
 
     overwatch = {"network_type": "standard",
                 "schedule_increment": 30,  
@@ -19,7 +75,7 @@ class StationManager(object):
 
     filechecks = ["sign_off_video", "off_air_video", "standby_image"]
 
-    main_config = "confs/main_config.json"
+    main_config = Path("confs/main_config.json")
 
     # NOTE: This is the borg singleton pattern - __we_are_all_one
     def __new__(cls, *args, **kwargs):
@@ -44,25 +100,25 @@ class StationManager(object):
         
         for i in range(len(self.stations)):
             station = self.stations[i]
-            if station['network_type'] == "standard":
+            if station.network_type == "standard":
                 self.stations[i] = SlotReader.smooth_tags(station)
 
     def station_by_name(self, name):
         for station in self.stations:
-            if station["network_name"] == name:
+            if station.network_name == name:
                 return station
         return None
     
     def station_by_channel(self, channel):
         for station in self.stations:
-            if station["channel_number"] == channel:
+            if station.channel_number == channel:
                 return station
         return None
 
     def index_from_channel(self, channel):
         index = 0
         for station in self.stations:
-            if station["channel_number"] == channel:
+            if station.channel_number == channel:
                 return index
             index+=1
         return None
@@ -72,19 +128,22 @@ class StationManager(object):
 
     def load_main_config(self):
         _l = logging.getLogger("STATIONMANAGER")
-        if os.path.exists(StationManager.main_config):
-            with open(StationManager.main_config) as f:
+        if StationManager.main_config.exists:
+            with open(StationManager.main_config) as file:
                 try:
-                    d = json.load(f)
-                    if "channel_socket" in d:
-                        self.server_conf["channel_socket"] = d["channel_socket"]
-                    if "status_socket" in d:
-                        self.server_conf["status_socket"] = d["status_socket"]
-                    if "day_parts" in d:
+                    data = json.load(file)
+
+                    main_config = MainConfig(**data)
+                    
+                    if "channel_socket" in data:
+                        self.server_conf["channel_socket"] = data["channel_socket"]
+                    if "status_socket" in data:
+                        self.server_conf["status_socket"] = data["status_socket"]
+                    if "day_parts" in data:
                         new_parts = {}
-                        for key in d["day_parts"]:
-                            start_hour = d["day_parts"][key]["start_hour"]
-                            end_hour = d["day_parts"][key]["end_hour"]
+                        for key in data["day_parts"]:
+                            start_hour = data["day_parts"][key]["start_hour"]
+                            end_hour = data["day_parts"][key]["end_hour"]
                             if end_hour > start_hour:
                                 new_parts[key] = range(start_hour, end_hour)
                             else:
@@ -110,34 +169,36 @@ class StationManager(object):
 
     def load_json_stations(self): 
         _l = logging.getLogger("STATIONMANAGER")
-        cfiles = glob.glob("confs/*.json")
+        config_files = glob.glob("confs/*.json")
         station_buffer = []
-        for fname in cfiles:
-            if fname != StationManager.main_config:
-                with open(fname) as f:
+        for file_name in config_files:
+            if file_name != StationManager.main_config:
+                with open(file_name) as file:
                     try:
-                        d = json.load(f)
+                        data = json.load(file)
+                        station_config = StationConfig(**data['station_conf'])
+
                         #set defaults for optionals
-                        for key in StationManager.overwatch:
-                            if key not in d['station_conf']:
-                                d['station_conf'][key] = StationManager.overwatch[key]
+                        # for key in StationManager.overwatch:
+                        #     if key not in data['station_conf']:
+                        #         data['station_conf'][key] = StationManager.overwatch[key]
 
-                        for to_check in StationManager.filechecks:
-                            if to_check in d['station_conf']:
-                                if not os.path.exists(d['station_conf'][to_check]):
-                                    _l.error("*" * 60)
-                                    _l.error(f"Error while checking configuration for {fname}")
-                                    _l.error(f"The filepath specified for {to_check} does not exist: {d['station_conf'][to_check]}")
-                                    _l.error("*" * 60)
-                                    exit(-1)
+                        # for required_file in StationManager.filechecks:
+                        #     if required_file in data['station_conf']:
+                        #         if not os.path.exists(data['station_conf'][required_file]):
+                        #             _l.error("*" * 60)
+                        #             _l.error(f"Error while checking configuration for {file_name}")
+                        #             _l.error(f"The filepath specified for {required_file} does not exist: {data['station_conf'][required_file]}")
+                        #             _l.error("*" * 60)
+                        #             exit(-1)
 
-                        station_buffer.append(d['station_conf'])
+                        station_buffer.append(station_config)
                     except Exception as e:
                         _l.error("*" * 60)
-                        _l.error(f"Error loading station configuration: {fname}")
+                        _l.error(f"Error loading station configuration: {file_name}")
                         _l.exception(e)
                         _l.error("*" * 60)
                         exit(-1)
 
-        self.stations = sorted(station_buffer, key=lambda station: station['channel_number'])
+        self.stations = sorted(station_buffer, key=lambda station: station.channel_number)
 
