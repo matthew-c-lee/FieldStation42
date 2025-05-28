@@ -21,8 +21,8 @@ class ScheduleScreen(Screen):
         self.options = []
         index = 0
         for station in StationManager().stations:
-            if station['network_type'] != "guide":
-                self.options.append((station['network_name'], index))   
+            if station.network_type != "guide":
+                self.options.append((station.network_name, index))   
                 index+=1 
         self.select_station: Select[int] =  Select(self.options, id="stationselector", prompt="Select Station")
 
@@ -112,7 +112,7 @@ class ScheduleScreen(Screen):
     def addtime_thread(self, how_long: str) -> None:
         stations = StationManager().stations
         for station in stations:
-            if 'schedule_path' in station:
+            if station.schedule_path is not None:
                 schedule = LiquidSchedule(station)
                 schedule.add_month()
         self.app.call_from_thread(self.rebuild_done)
@@ -120,9 +120,9 @@ class ScheduleScreen(Screen):
     @work(exclusive=True, thread=True)
     def rebuild_all_thread(self) -> None:
         for station in StationManager().stations:
-            if 'schedule_path' in station:
-                if os.path.exists(station["schedule_path"]):
-                    os.unlink(station["schedule_path"])
+            if station.schedule_path is not None:
+                if station.schedule_path.exists():
+                    station.schedule_path.unlink()
                 LiquidSchedule(station).add_month()
         self.app.call_from_thread(self.rebuild_done)
 
@@ -131,7 +131,7 @@ class ScheduleScreen(Screen):
         all_found = True
         for station in StationManager().stations:
             try:
-                if station['network_type'] != 'guide':
+                if station.network_type != 'guide':
                     ShowCatalog(station)
             except FileNotFoundError:
                 all_found = False

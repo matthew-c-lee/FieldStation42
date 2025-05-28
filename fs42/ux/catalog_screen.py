@@ -18,8 +18,8 @@ class CatalogScreen(Screen):
         self.options = []
         index = 0
         for station in StationManager().stations:
-            if station['network_type'] != "guide":
-                self.options.append((station['network_name'], index))   
+            if station.network_type != "guide":
+                self.options.append((station.network_name, index))   
                 index+=1 
         self.select_station: Select[int] =  Select(self.options, id="stationselector", prompt="Select Station")
 
@@ -99,16 +99,16 @@ class CatalogScreen(Screen):
     @work(exclusive=True, thread=True)
     def rebuild_thread(self, network_name: str) -> None:
         station = StationManager().station_by_name(network_name)
-        if station['network_type'] != 'guide':
+        if station.network_type != 'guide':
             catalog = ShowCatalog(station, rebuild_catalog=True)
         self.app.call_from_thread(self.rebuild_done)
 
     @work(exclusive=True, thread=True)
     def rebuild_all_thread(self) -> None:
         for station in StationManager().stations:
-            msg = f"Building catalog for {station['network_name']}" 
+            msg = f"Building catalog for {station.network_name}" 
             #self.app.call_from_thread(self.update_loading_message, msg)
-            if station['network_type'] != 'guide':
+            if station.network_type != 'guide':
                 catalog = ShowCatalog(station, rebuild_catalog=True)
                 #catalog.build_catalog()
         self.app.call_from_thread(self.rebuild_done)
@@ -118,19 +118,19 @@ class CatalogScreen(Screen):
         self.dt.clear(True)
         self.dt.add_columns("Network",  "Channel", "Type","Tags", "Videos")
         for station in StationManager().stations:
-            network_name = station['network_name']
+            network_name = station.network_name
             
-            if 'catalog_path' in station:
+            if getattr(station, "catalog_path"):
                 try:
                     (vcount, tcount) = ShowCatalog(station).summary_data()
                     self.dt.add_row(network_name, 
-                                    station["channel_number"],
-                                    station["network_type"],  
+                                    station.channel_number,
+                                    station.network_type,  
                                     vcount, tcount)
                 except FileNotFoundError:
                     self.dt.add_row(network_name, 
-                                    station["channel_number"],
-                                    station["network_type"],  
+                                    station.channel_number,
+                                    station.network_type,  
                                     "No catalog", "No catalog")
             else:
                 pass

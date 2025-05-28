@@ -1,4 +1,5 @@
 from datetime import datetime
+from fs42.types.models import StationConfig
 import copy
 
 from fs42 import timings
@@ -6,7 +7,7 @@ from fs42 import timings
 class SlotReader():
 
     @staticmethod
-    def get_tag(conf, when:datetime):
+    def get_tag(conf: StationConfig, when:datetime):
         response = None
         slot = SlotReader.get_slot(conf, when)
         if slot and "tags" in slot:
@@ -22,7 +23,7 @@ class SlotReader():
 
         return response
     
-
+    @staticmethod
     def get_tag_from_slot(slot, when:datetime):
         response = None
         if slot and "tags" in slot:
@@ -38,14 +39,15 @@ class SlotReader():
 
         return response
 
-
-    def get_slot(conf, when:datetime):
+    @staticmethod
+    def get_slot(conf: StationConfig, when:datetime):
         day_str = timings.DAYS[when.weekday()]
         slot_number = str(when.hour)
         response = None
-        if day_str in conf:
-            if slot_number in conf[day_str]:
-                response = conf[day_str][slot_number]
+        day = getattr(conf, day_str)
+        if day:
+            if slot_number in day:
+                response = day[slot_number]
                 
         return response
     
@@ -57,10 +59,12 @@ class SlotReader():
         for day_index in timings.DAYS:
             for slot_index in timings.OPERATING_HOURS:
                 slot_index = str(slot_index)
-                if slot_index in conf[day_index]:
-                    if 'tags' in conf[day_index][slot_index]:
-                        last_tag = conf[day_index][slot_index]
-                    elif 'continued' in conf[day_index][slot_index]:
-                        if conf[day_index][slot_index]['continued'] == True:
-                            smoothed[day_index][slot_index]['tags'] = last_tag['tags']
+                day = getattr(conf, day_index)
+                if slot_index in day:
+                    if 'tags' in day[slot_index]:
+                        last_tag = day[slot_index]
+                    elif 'continued' in day[slot_index]:
+                        if day[slot_index]['continued'] == True:
+                            smoothed_day = getattr(day_index, slot_index)
+                            smoothed_day['tags'] = last_tag['tags']
         return smoothed

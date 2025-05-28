@@ -74,7 +74,7 @@ class SelectStationScreen(ModalScreen[str]):
         self.options = []
         index = 0
         for station in StationManager().stations:
-            self.options.append((station['network_name'], index))   
+            self.options.append((station.network_name, index))   
             index+=1 
         self.select_station: Select[int] =  Select(self.options, id="stationselector")
 

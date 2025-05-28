@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 class MatchingContentNotFound(Exception):
     pass
@@ -7,10 +8,10 @@ class NoFillerContentFound(Exception):
     pass
 
 class CatalogEntry:
-    def __init__(self, path, duration, tag, hints=[]):
+    def __init__(self, path: Path, duration, tag: str, hints=[]):
         self.path = path
         #get the show name from the path
-        self.title = os.path.splitext(os.path.basename(path))[0]
+        self.title = path.stem
         self.duration = duration
         self.tag = tag
         self.count = 0

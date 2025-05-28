@@ -12,12 +12,13 @@ from fs42.slot_reader import SlotReader
 from fs42 import timings
 from fs42.liquid_blocks import LiquidBlock, LiquidClipBlock, LiquidOffAirBlock, LiquidLoopBlock
 from fs42.series import SeriesIndex
+from fs42.types.models import StationConfig
 
 logging.basicConfig(format="%(asctime)s %(levelname)s:%(name)s:%(message)s", level=logging.INFO)
 
 
 class LiquidSchedule:
-    def __init__(self, conf):
+    def __init__(self, conf: StationConfig):
         self._l = logging.getLogger("Liquid")
         # self.conf = TagHintReader.smooth_tags(conf)
         self.conf = conf
@@ -26,21 +27,21 @@ class LiquidSchedule:
 
     def _calc_target_duration(self, duration):
         # get the target duration for the show based on the shedule increment
-        multiple = self.conf["schedule_increment"] * 60
+        multiple = self.conf.schedule_increment * 60
         if multiple == 0:
             return duration
         return multiple * math.ceil(duration / multiple)
 
     def _calc_target_start(self, mark):
         # determine when the block was supposed to start based on the schedule increment
-        multiple = self.conf["schedule_increment"] * 60
+        multiple = self.conf.schedule_increment * 60
         if multiple == 0:
             return mark
         return multiple * math.floor(mark / multiple)
 
     def _load_blocks(self):
         # load all the blocks from disk
-        s_path = self.conf["schedule_path"]
+        s_path = self.conf.schedule_path
         if os.path.isfile(s_path):
             with open(s_path, "rb") as f:
                 try:
@@ -61,7 +62,7 @@ class LiquidSchedule:
 
     def _save_blocks(self):
         # save blocks to disk
-        with open(self.conf["schedule_path"], "wb") as f:
+        with open(self.conf.schedule_path, "wb") as f:
             pickle.dump(self._blocks, f)
 
     def _end_time(self):
@@ -80,7 +81,7 @@ class LiquidSchedule:
         for i in range(diff.days):
             current_mark = start_time + datetime.timedelta(days=i)
             next_mark = start_time + datetime.timedelta(days=i + 1)
-            block = LiquidLoopBlock(content, current_mark, next_mark, self.conf["network_name"])
+            block = LiquidLoopBlock(content, current_mark, next_mark, self.conf.network_name)
             new_blocks.append(block)
 
         self._l.info(f"Building plans for {len(new_blocks)} new schedule blocks")
@@ -117,7 +118,7 @@ class LiquidSchedule:
 
                 seq_key = None
 
-                if tag_str not in self.conf["clip_shows"]:
+                if tag_str not in self.conf.clip_shows:
                     candidate = None
                     # see if this is a series with a sequence defined
                     if "sequence" in slot_config:
@@ -139,7 +140,7 @@ class LiquidSchedule:
                         next_mark = current_mark + datetime.timedelta(seconds=target_duration)
 
                         new_block = LiquidBlock(
-                            candidate, current_mark, next_mark, candidate.title, self.conf["break_strategy"], bump_info
+                            candidate, current_mark, next_mark, candidate.title, self.conf.break_strategy, bump_info
                         )
                         # add sequence information
                         if seq_key:
@@ -157,7 +158,7 @@ class LiquidSchedule:
                         sys.exit(-1)
                     else:
                         clip_block = LiquidClipBlock(
-                            clip_content, current_mark, timings.HOUR, tag_str, self.conf["break_strategy"], bump_info
+                            clip_content, current_mark, timings.HOUR, tag_str, self.conf.break_strategy, bump_info
                         )
                         target_duration = self._calc_target_duration(clip_block.content_duration())
                         next_mark = current_mark + datetime.timedelta(seconds=target_duration)
@@ -170,7 +171,7 @@ class LiquidSchedule:
                 if candidate is None:
                     self._l.error(f"Schedule logic error: no schedule hints for {current_mark}")
                     self._l.error("This indicates that the station is offair, but offair content is not configured")
-                    self._l.error(f"Configure 'off_air_video' or 'off_air_image' for {self.conf['network_name']}")
+                    self._l.error(f"Configure 'off_air_video' or 'off_air_image' for {self.conf.network_name}")
                     sys.exit(-1)
 
                 # make it for one hour.
@@ -214,7 +215,7 @@ class LiquidSchedule:
             case "month":
                 end_building = timings.next_month(start_building)
 
-        match self.conf["network_type"]:
+        match self.conf.network_type:
             case "standard":
                 self._fluid(start_building, end_building)
             case "loop":

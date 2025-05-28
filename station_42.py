@@ -4,6 +4,7 @@ import os
 import sys
 
 from fs42.catalog import ShowCatalog
+from fs42.types.models import StationConfig
 from fs42.station_manager import StationManager
 from fs42.liquid_manager import LiquidManager
 from fs42.liquid_schedule import LiquidSchedule
@@ -12,10 +13,10 @@ import argparse
 
 class Station42:
 
-    def __init__(self, config, rebuild_catalog=False):
+    def __init__(self, config: StationConfig, rebuild_catalog=False):
         # station configuration
         self.config = config
-        self._l = logging.getLogger(self.config['network_name'])
+        self._l = logging.getLogger(self.config.network_name)
         self.catalog:ShowCatalog = ShowCatalog(self.config, rebuild_catalog=rebuild_catalog)
         self.get_text_listing = self.catalog.get_text_listing
         self.check_catalog = self.catalog.check_catalog
@@ -84,22 +85,22 @@ def main():
     processed_catalog_paths = set() # Initialize set to track processed catalog paths
 
     for station_conf in sm.stations:
-        if station_conf['network_type'] == 'guide':
+        if station_conf.network_type == 'guide':
             #catch guide so we don't print it or try to further process
             logging.getLogger().info(f"Loaded guide channel")
         elif args.printcat:
-            if station_conf['network_name'] == args.printcat:
-                logging.getLogger().info(f"Printing catalog for {station_conf['network_name']}")
+            if station_conf.network_name == args.printcat:
+                logging.getLogger().info(f"Printing catalog for {station_conf.network_name}")
                 print(Station42(station_conf, args.rebuild_catalog).get_text_listing())
                 found_print_target = True
         else:
             rebuild_flag_for_this_station = args.rebuild_catalog
-            catalog_path = station_conf.get('catalog_path')
+            catalog_path = station_conf.catalog_path
             if args.rebuild_catalog:
                 if catalog_path:
                     if catalog_path in processed_catalog_paths:
                         logging.getLogger().info(
-                            f"Catalog for path '{catalog_path}' (network: {station_conf['network_name']}) "
+                            f"Catalog for path '{catalog_path}' (network: {station_conf.network_name}) "
                             f"has already been processed in this run. Skipping redundant rebuild."
                         )
                         rebuild_flag_for_this_station = False
@@ -108,12 +109,12 @@ def main():
                         processed_catalog_paths.add(catalog_path)
                 else:
                     logging.getLogger().warning(
-                        f"Station '{station_conf['network_name']}' does not have a 'catalog_path' defined. "
+                        f"Station '{station_conf.network_name}' does not have a 'catalog_path' defined. "
                         f"It will be rebuilt if --rebuild_catalog is set, but cannot share a catalog."
                     )
             
 
-            logging.getLogger().info(f"Processing station: {station_conf['network_name']}")
+            logging.getLogger().info(f"Processing station: {station_conf.network_name}")
             station = Station42(station_conf, rebuild_flag_for_this_station)
 
             if args.rebuild_sequences:
@@ -123,10 +124,10 @@ def main():
 
             if args.check_catalogs:
                 #then just run a check and exit
-                logging.getLogger().info(f"Checking catalog for {station_conf['network_name']}")
+                logging.getLogger().info(f"Checking catalog for {station_conf.network_name}")
                 station.check_catalog()
             else:
-                logging.getLogger().info(f"Checking for schedule tasks for {station_conf['network_name']}")
+                logging.getLogger().info(f"Checking for schedule tasks for {station_conf.network_name}")
                 #schedule = station.make_weekly_schedule()
                 liquid = LiquidSchedule(station_conf)
                 if args.add_day:

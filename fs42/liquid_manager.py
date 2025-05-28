@@ -35,19 +35,19 @@ class LiquidManager(object):
     
     def __init__(self):
         if not len(self.station_configs):
-            self.station_configs =  StationManager().stations
+            self.station_configs = StationManager().stations
             self.reload_schedules()
 
     def reload_schedules(self):
         self.schedules = {}
         for station in self.station_configs:
-            if station['network_type'] != 'guide':
-                _id = station['network_name']
-                _path = station['schedule_path']
-                if os.path.isfile(_path):
-                    with open(_path, "rb") as f:
+            if station.network_type != 'guide':
+                _id = station.network_name
+                _path = station.schedule_path
+                if _path.is_file():
+                    with open(_path, "rb") as file:
                         try:
-                            self.schedules[_id] = pickle.load(f)
+                            self.schedules[_id] = pickle.load(file)
                         except ModuleNotFoundError:
                             print('\033[91m' + "Error loading schedule - this means you probably need to update your schedule format")
                             print("Please update your schedules by running station_42.py -x and then regenerating. Cheers!" + '\033[0m')
@@ -65,10 +65,10 @@ class LiquidManager(object):
 
     def reset_all_schedules(self):
         for station_config in self.station_configs:
-            if station_config['network_type'] != "guide":
+            if station_config.network_type != "guide":
                 self.reset_sequences(station_config)
-                if os.path.exists(station_config["schedule_path"]):
-                    os.unlink(station_config["schedule_path"])
+                if station_config.schedule_path.exists():
+                    station_config.schedule_path.unlink()
         self.reload_schedules()
 
 
@@ -76,7 +76,7 @@ class LiquidManager(object):
         # get the catalog
         catalog = ShowCatalog(station_config)
 
-        _blocks: list[LiquidBlock] = self.schedules[station_config['network_name']]
+        _blocks: list[LiquidBlock] = self.schedules[station_config.network_name]
         now = datetime.datetime.now()
         _reaped = {}
     

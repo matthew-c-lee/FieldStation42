@@ -98,13 +98,13 @@ class GuideBuilder:
 
         #stations are a row
         for station in StationManager().stations:
-            if station['network_type'] == "guide":
+            if station.network_type == "guide":
                 continue
-            entries = ScheduleQuery.query_slot(station['network_name'], start_time)
+            entries = ScheduleQuery.query_slot(station.network_name, start_time)
 
             view['rows'].append(entries)
-            network_name = station['network_name']
-            channel_number = station['channel_number']
+            network_name = station.network_name
+            channel_number = station.channel_number
             view['meta'].append({"network_name": network_name, "channel_number": channel_number})
 
 

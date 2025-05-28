@@ -2,7 +2,7 @@ import logging
 import os
 import glob
 import ffmpeg
-
+from pathlib import Path
 
 try:
     # try to import from version > 2.0
@@ -21,7 +21,7 @@ class MediaProcessor:
     supported_formats = ["mp4", "mpg", "mpeg", "avi", "mov", "mkv"]
 
     @staticmethod
-    def _process_media(file_list, tag, hints=[]):
+    def _process_media(file_list: list[Path], tag, hints=[]):
         _l = logging.getLogger("MEDIA")
         _l.debug(f"_process_media starting processing for tag={tag} on {len(file_list)} files")
         show_clip_list = []
@@ -82,12 +82,12 @@ class MediaProcessor:
             return -1
 
     @staticmethod
-    def _find_media(path):
+    def _find_media(path) -> list[Path]:
         logging.getLogger("MEDIA").debug(f"_find_media scanning for media in {path}")
         file_list = []
         for ext in MediaProcessor.supported_formats:
             this_format = glob.glob(f"{path}/*.{ext}")
-            file_list += this_format
+            file_list += map(Path, this_format)
             logging.getLogger("MEDIA").debug(
                 f"--Found {len(this_format)} files with {ext} extension - {len(file_list)} total found in {path} so far"
             )
@@ -96,7 +96,7 @@ class MediaProcessor:
         return file_list
 
     @staticmethod
-    def _rfind_media(path):
+    def _rfind_media(path) -> list[Path]:
         logging.getLogger("MEDIA").debug(f"_rfind_media scanning for media in {path}")
         file_list = []
 
@@ -104,14 +104,14 @@ class MediaProcessor:
         for ext in MediaProcessor.supported_formats:
             # this_format = directory.rglob(f"*.{ext}")
             this_format = glob.glob(f"{path}/**/*.{ext}", recursive=True)
-            file_list += this_format
+            file_list += map(Path, this_format)
 
         logging.getLogger("MEDIA").debug(f"_rfind_media done scanning {path} {len(file_list)}")
         return file_list
 
     @staticmethod
-    def _process_hints(path, tag, bumpdir=False):
-        base = os.path.basename(path)
+    def _process_hints(path: Path, tag, bumpdir=False):
+        base = path.name
         hints = []
         if MonthHint.test_pattern(base):
             hints.append(MonthHint(base))
@@ -128,8 +128,8 @@ class MediaProcessor:
         return hints
 
     @staticmethod
-    def _process_subs(dir_path, tag, bumpdir=False):
-        subs = [f.path for f in os.scandir(dir_path) if f.is_dir()]
+    def _process_subs(dir_path: Path, tag, bumpdir=False) -> list[Path]:
+        subs = [f for f in Path(dir_path).iterdir() if f.is_dir()]
         clips = []
         for sub in subs:
             file_list = MediaProcessor._rfind_media(sub)

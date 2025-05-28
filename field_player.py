@@ -20,7 +20,7 @@ def main_loop(transition_fn):
     logger = logging.getLogger("MainLoop")
     logger.info("Starting main loop")
 
-    channel_socket = StationManager().server_conf['channel_socket']
+    channel_socket = StationManager().server_conf.channel_socket
 
     #go ahead and clear the channel socket (or create if it doesn't exist)
     with open(channel_socket, 'w'):
@@ -58,11 +58,11 @@ def main_loop(transition_fn):
     stuck_timer = 0
 
     while True:
-        logger.info(f"Playing station: {channel_conf['network_name']}" )
+        logger.info(f"Playing station: {channel_conf.network_name}" )
         current_title = player.get_current_title()
-        update_status_socket("playing", channel_conf['network_name'], channel_conf['channel_number'],current_title)
+        update_status_socket("playing", channel_conf.network_name, channel_conf.channel_number,current_title)
 
-        if  channel_conf["network_type"] == "guide" and not skip_play:
+        if  channel_conf.network_type == "guide" and not skip_play:
             logger.info("Starting the guide channel")
             outcome = player.show_guide(channel_conf)
         elif not skip_play:
@@ -72,9 +72,9 @@ def main_loop(transition_fn):
             hour = now.hour
             skip = now.minute * MIN_1 + now.second
 
-            logger.info(f"Starting station {channel_conf['network_name']} at: {week_day} {hour} skipping={skip} ")
+            logger.info(f"Starting station {channel_conf.network_name} at: {week_day} {hour} skipping={skip} ")
 
-            outcome = player.play_slot(channel_conf['network_name'],datetime.datetime.now())
+            outcome = player.play_slot(channel_conf.network_name,datetime.datetime.now())
 
         logger.debug(f"Got player outcome:{outcome.status}")
 
@@ -133,10 +133,10 @@ def main_loop(transition_fn):
             stuck_timer+=1
 
             #only put it up once after 2 seconds of being stuck
-            if stuck_timer == 2 and "standby_image" in channel_conf:
-                player.play_file(channel_conf["standby_image"])
+            if stuck_timer == 2 and channel_conf.standby_image is not None:
+                player.play_file(channel_conf.standby_image)
             current_title_on_stuck = player.get_current_title()
-            update_status_socket("stuck", channel_conf['network_name'], channel_conf['channel_number'],current_title_on_stuck)
+            update_status_socket("stuck", channel_conf.network_name, channel_conf.channel_number,current_title_on_stuck)
 
             time.sleep(1)
             logger.critical("Player failed to start - resting for 1 second and trying again")

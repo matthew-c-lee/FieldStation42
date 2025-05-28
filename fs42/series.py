@@ -1,9 +1,10 @@
 import math
+from pathlib import Path
 
 class SequenceEntry:
 
-    def __init__(self, fpath, scheduled=[], last_played=None):
-        self.fpath = str(fpath)
+    def __init__(self, fpath: Path, scheduled=[], last_played=None):
+        self.fpath = fpath
         self.next_scheduled = scheduled
         self.last_played = last_played
 
@@ -25,7 +26,7 @@ class SeriesIndex:
     def make_key(series_name, sequence_name):
         return f"{series_name}-{sequence_name}"
 
-    def populate(self, file_list):
+    def populate(self, file_list: list[Path]):
         for file in file_list:
             entry = SequenceEntry(file)
             self._episodes.append(entry)
@@ -64,10 +65,10 @@ class SeriesIndex:
         
         return to_return
     
-    def get_current(self):
+    def get_current(self) -> Path:
         return self._episodes[self._index].fpath
 
-    def reset_by_fpath(self, fpath):
+    def reset_by_fpath(self, fpath) -> None:
         for i in range(len(self._episodes)):
             if self._episodes[i].fpath == fpath:
                 self._index = i
@@ -79,7 +80,7 @@ class SeriesIndex:
         self._index = (len(self._episodes)-1) if self._index < 0 else self._index
         
 
-    def _by_fpath(self, fpath):
+    def _by_fpath(self, fpath: Path) -> Path | None:
         for episode in self._episodes:
             if episode.fpath == fpath:
                 return fpath

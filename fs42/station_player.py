@@ -12,12 +12,13 @@ from python_mpv_jsonipc import MPV
 from fs42.guide_tk import guide_channel_runner, GuideCommands
 from fs42.reception import ReceptionStatus
 from fs42.liquid_manager import LiquidManager, PlayPoint
+from fs42.types.models import StationConfig
 from fs42.station_manager import StationManager
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s', level=logging.INFO)
 
 def check_channel_socket():
-    channel_socket = StationManager().server_conf['channel_socket']
+    channel_socket = StationManager().server_conf.channel_socket
     r_sock = open(channel_socket, "r")
     contents = r_sock.read()
     r_sock.close()
@@ -36,7 +37,7 @@ def update_status_socket(status, network_name, channel, title=None,timestamp="%Y
     }
     if title is not None:
         status_obj["title"] = title
-    status_socket = StationManager().server_conf['status_socket']
+    status_socket = StationManager().server_conf.status_socket
     as_str = json.dumps(status_obj)
     with open(status_socket, "w") as fp:
         fp.write(as_str)
@@ -56,7 +57,7 @@ class PlayerOutcome:
 
 class StationPlayer:
 
-    def __init__(self, station_config, mpv=None):
+    def __init__(self, station_config: StationConfig, mpv=None):
         self._l = logging.getLogger("FieldPlayer")
         if not mpv:
             self._l.info("Starting MPV instance")
@@ -90,20 +91,20 @@ class StationPlayer:
             else:
                 self.mpv.vf = self.reception.filter()
 
-    def play_file(self, file_path):
+    def play_file(self, file_path: str):
         self.current_playing_file_path = file_path # Added
         basename = os.path.basename(file_path) # Added
         title, _ = os.path.splitext(basename) # Added
         if self.station_config:
             ts_format = os.environ.get('FS42_TS', "%Y-%m-%dT%H:%M:%S")
-            update_status_socket("playing", self.station_config['network_name'], self.station_config['channel_number'], title, timestamp=ts_format)
+            update_status_socket("playing", self.station_config.network_name, self.station_config.channel_number, title, timestamp=ts_format)
         else:
             self._l.warning("station_config not available in play_file, cannot update status socket with title.")
 
-        self.mpv.play(file_path)
+        self.mpv.play(str(file_path))
 
-        if 'panscan' in self.station_config:
-            self.mpv.panscan = self.station_config['panscan']
+        if self.station_config.panscan is not None:
+            self.mpv.panscan = self.station_config.panscan
 
         self.mpv.wait_for_property("duration")
         return
@@ -111,14 +112,14 @@ class StationPlayer:
     def play_image(self, duration):
         pass
 
-    def show_guide(self, guide_config):
+    def show_guide(self, guide_config: StationConfig):
         #create the pipe to communicate with the guide channel
         queue = multiprocessing.Queue()
         guide_process = multiprocessing.Process(target=guide_channel_runner, args=( guide_config, queue,))
         guide_process.start()
 
-        if 'play_sound' in guide_config and guide_config['play_sound']:
-            self.play_file(guide_config["sound_to_play"])
+        if guide_config.play_sound:
+            self.play_file(guide_config.sound_to_play)
         else:
             self.mpv.stop()
             self.current_playing_file_path = None
