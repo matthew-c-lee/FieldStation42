@@ -3,6 +3,7 @@ import time
 import os
 import sys
 import subprocess
+from fs42.config.config import APP_CONFIG
 
 # Uses adafruit circuitpython via Blink - install blinka first:
 # https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi
@@ -27,7 +28,7 @@ def get_temperature():
 
 class CableBox:
 
-    def __init__(self, channel_socket = "runtime/channel.socket", status_socket = "runtime/play_status.socket"):
+    def __init__(self, channel_socket = APP_CONFIG.channel_socket_path, status_socket = APP_CONFIG.status_socket_path):
 
         self.channel_socket = channel_socket
         self.status_socket = status_socket

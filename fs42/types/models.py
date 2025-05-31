@@ -1,5 +1,7 @@
 from pathlib import Path
 from pydantic import BaseModel, Field, model_validator, field_validator
+from fs42.config.config import APP_CONFIG
+
 
 class StationConfig(BaseModel):
     channel_number: int
@@ -47,8 +49,8 @@ class StationConfig(BaseModel):
         return self
     
 class ServerConfig(BaseModel):
-    channel_socket: Path = Path("runtime/channel.socket")
-    status_socket: Path = Path("runtime/play_status.socket")
+    channel_socket: Path = APP_CONFIG.channel_socket_path
+    status_socket: Path = APP_CONFIG.status_socket_path
     day_parts: dict[str, range | list[int]] = Field(default_factory=lambda: {
         "morning"   : range(6,10),
         "daytime"   : range(10,18),

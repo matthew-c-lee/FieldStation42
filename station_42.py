@@ -1,6 +1,5 @@
 import logging
 logging.basicConfig(format='%(levelname)s:%(name)s:%(message)s', level=logging.INFO)
-import os
 import sys
 
 from fs42.catalog import ShowCatalog
@@ -8,6 +7,7 @@ from fs42.types.models import StationConfig
 from fs42.station_manager import StationManager
 from fs42.liquid_manager import LiquidManager
 from fs42.liquid_schedule import LiquidSchedule
+from pathlib import Path
 
 import argparse
 
@@ -41,7 +41,43 @@ def main():
 
     args = parser.parse_args()
 
-    if args.graphical_interface or len(sys.argv) <= 1:
+    graphical_interface = True if len(sys.argv) == 1 else args.graphical_interface
+    logfile = Path(args.logfile) if args.logfile else None
+
+    start_catalog(
+        graphical_interface=graphical_interface,
+        logfile=logfile,
+        check_catalogs=args.check_catalogs,
+        printcat=args.printcat,
+        rebuild_catalog=args.rebuild_catalog,
+        rebuild_sequences=args.rebuild_sequences,
+        scan_sequences=args.scan_sequences,
+        add_week=args.add_week,
+        add_month=args.add_month,
+        add_day=args.add_day,
+        schedule=args.schedule,
+        print_schedule=args.print_schedule,
+        delete_schedules=args.delete_schedules,
+        verbose=args.verbose,
+    )
+
+def start_catalog(
+    graphical_interface: bool = False,
+    logfile: Path | None = None,
+    check_catalogs: bool = False,
+    printcat: str | None = None,
+    rebuild_catalog: bool = False,
+    rebuild_sequences: bool = False,
+    scan_sequences: bool = False,
+    add_week: bool = False,
+    add_month: bool = False,
+    add_day: bool = False,
+    schedule: bool = False,
+    print_schedule: str | None = None,
+    delete_schedules: bool = False,
+    verbose: bool = False,
+) -> None:
+    if graphical_interface:
         try:
             from fs42.ux.ux import StationApp
         except ModuleNotFoundError:
@@ -53,17 +89,17 @@ def main():
         app.run()
         sys.exit()
 
-    if( args.verbose ):
+    if( verbose ):
         logging.getLogger().setLevel(logging.DEBUG)
 
-    if (args.logfile):
+    if (logfile):
         formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
-        fh = logging.FileHandler(args.logfile)
+        fh = logging.FileHandler(logfile)
         fh.setFormatter(formatter)
 
         logging.getLogger().addHandler(fh)
 
-    if args.schedule:
+    if schedule:
         logging.getLogger().info(f"Printing shedule summary.")
         print(LiquidManager().get_summary())
         return
@@ -71,13 +107,13 @@ def main():
 
 
 
-    if args.delete_schedules:
+    if delete_schedules:
         logging.getLogger().info(f"Deleting all schedules")
         LiquidManager().reset_all_schedules()
         logging.getLogger().info(f"All schedules deleted")
 
-    if args.print_schedule:
-        LiquidManager().print_schedule(args.print_schedule, args.verbose)
+    if print_schedule:
+        LiquidManager().print_schedule(print_schedule, verbose)
         return
 
     sm = StationManager()
@@ -88,15 +124,15 @@ def main():
         if station_conf.network_type == 'guide':
             #catch guide so we don't print it or try to further process
             logging.getLogger().info(f"Loaded guide channel")
-        elif args.printcat:
-            if station_conf.network_name == args.printcat:
+        elif printcat:
+            if station_conf.network_name == printcat:
                 logging.getLogger().info(f"Printing catalog for {station_conf.network_name}")
-                print(Station42(station_conf, args.rebuild_catalog).get_text_listing())
+                print(Station42(station_conf, rebuild_catalog).get_text_listing())
                 found_print_target = True
         else:
-            rebuild_flag_for_this_station = args.rebuild_catalog
+            rebuild_flag_for_this_station = rebuild_catalog
             catalog_path = station_conf.catalog_path
-            if args.rebuild_catalog:
+            if rebuild_catalog:
                 if catalog_path:
                     if catalog_path in processed_catalog_paths:
                         logging.getLogger().info(
@@ -117,12 +153,12 @@ def main():
             logging.getLogger().info(f"Processing station: {station_conf.network_name}")
             station = Station42(station_conf, rebuild_flag_for_this_station)
 
-            if args.rebuild_sequences:
+            if rebuild_sequences:
                 station.catalog.rebuild_sequences(True)
-            elif args.scan_sequences:
+            elif scan_sequences:
                 station.catalog.scan_sequences(True)
 
-            if args.check_catalogs:
+            if check_catalogs:
                 #then just run a check and exit
                 logging.getLogger().info(f"Checking catalog for {station_conf.network_name}")
                 station.check_catalog()
@@ -130,17 +166,19 @@ def main():
                 logging.getLogger().info(f"Checking for schedule tasks for {station_conf.network_name}")
                 #schedule = station.make_weekly_schedule()
                 liquid = LiquidSchedule(station_conf)
-                if args.add_day:
+                if add_day:
                     liquid.add_days(1)
-                elif args.add_week:
+                elif add_week:
                     liquid.add_week()
-                elif args.add_month:
+                elif add_month:
                     liquid.add_month()
                 else:
                     logging.getLogger().info("No schedules generated, use -h --help to see available options")
 
-    if args.printcat and not found_print_target:
-        logging.getLogger().error(f"Could not find catalog for network named: {args.printcat}")
+    if printcat and not found_print_target:
+        logging.getLogger().error(f"Could not find catalog for network named: {printcat}")
+
+
 
 if __name__ == "__main__":
     main()

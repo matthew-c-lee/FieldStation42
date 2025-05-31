@@ -5,6 +5,7 @@ sys.path.append(os.getcwd())
 import tkinter as tk #import Tkinter
 from PIL import Image, ImageTk
 from fs42.guide_builder import GuideBuilder
+from fs42.config.config import APP_CONFIG
 
 class GuideWindowConf:
 
@@ -43,7 +44,7 @@ class GuideWindowConf:
         self.schedule_row_count = 3
 
         self.play_sound = False
-        self.sound_to_play = "runtime/guide/easy.mp3"
+        self.sound_to_play = APP_CONFIG.runtime_dir / "guide/easy.mp3"
 
         self._calc_internals()
 

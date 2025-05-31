@@ -4,6 +4,7 @@ import serial
 import os
 import sys
 import json
+from fs42.config.config import APP_CONFIG
 
 uart = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=10)
 
@@ -16,7 +17,7 @@ def old_loop():
             print("Got Message: ", command)
             if command.startswith("change"):
                 timestamp = datetime.datetime.now()
-                with open("runtime/channel.socket", "w") as fp:
+                with open(APP_CONFIG.channel_socket_path, "w") as fp:
                     fp.write(str(timestamp))
             if command.startswith("exit"):
                 os.system("pkill -9 -f field_player.py")
@@ -52,13 +53,13 @@ def new_loop():
                     os.system("sudo halt")
                     sys.exit(-1)
                 else:
-                    with open("runtime/channel.socket", "w") as fp:
+                    with open(APP_CONFIG.channel_socket_path, "w") as fp:
                         fp.write(command)
             except Exception as e:
                 print("Error decoding message")
                 print(e)
         else:
-            with open("runtime/play_status.socket") as fp:
+            with open(APP_CONFIG.status_socket_path) as fp:
                 as_str = fp.read()
                 
                 if as_str != last_stat:

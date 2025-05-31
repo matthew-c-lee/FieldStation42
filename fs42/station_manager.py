@@ -7,17 +7,16 @@ from fs42.types.models import (
     StationConfig,
     ServerConfig,
 )
-
+from fs42.config.config import APP_CONFIG
 
 class StationManager(object):
-
     __we_are_all_one = {}
     
     stations: list[StationConfig] = []
 
     filechecks = ["sign_off_video", "off_air_video", "standby_image"]
 
-    main_config = Path("confs/main_config.json")
+    main_config: Path = APP_CONFIG.config_dir / "main_config.json"
 
     # NOTE: This is the borg singleton pattern - __we_are_all_one
     def __new__(cls, *args, **kwargs):
@@ -105,7 +104,7 @@ class StationManager(object):
 
     def load_json_stations(self): 
         _l = logging.getLogger("STATIONMANAGER")
-        config_files = glob.glob("confs/*.json")
+        config_files = glob.glob(f"{APP_CONFIG.config_dir}/*.json")
         station_buffer = []
         for file_path in config_files:
             if file_path == StationManager.main_config:

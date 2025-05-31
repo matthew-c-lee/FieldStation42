@@ -120,7 +120,7 @@ class CatalogScreen(Screen):
         for station in StationManager().stations:
             network_name = station.network_name
             
-            if getattr(station, "catalog_path"):
+            if station.catalog_path:
                 try:
                     (vcount, tcount) = ShowCatalog(station).summary_data()
                     self.dt.add_row(network_name, 

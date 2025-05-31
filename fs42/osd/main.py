@@ -3,10 +3,9 @@ from pathlib import Path
 import glfw
 from pydantic import BaseModel
 from enum import Enum
-
+from fs42.config.config import APP_CONFIG
 from render import Text, create_window, clear_screen
 
-SOCKET_FILE = "runtime/play_status.socket"
 CONFIG_FILE_PATH = Path("osd/osd.json")
 
 class HAlignment(Enum):
@@ -46,7 +45,7 @@ class StatusDisplay(object):
 
         self.check_status()
 
-    def check_status(self, socket_file=SOCKET_FILE):
+    def check_status(self, socket_file=APP_CONFIG.channel_socket_path):
         with open(socket_file, "r") as f:
             status = f.read()
             try:

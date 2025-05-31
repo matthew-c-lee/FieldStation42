@@ -10,6 +10,7 @@ from fs42.station_manager import StationManager
 from fs42.timings import MIN_1, DAYS
 from fs42.station_player import StationPlayer, PlayStatus, check_channel_socket, update_status_socket
 from fs42.reception import ReceptionStatus
+from fs42.config.config import APP_CONFIG
 
 
 debounce_fragment = 0.1
@@ -176,7 +177,7 @@ def long_change_effect(player, reception):
         time.sleep(debounce_fragment)
 
     #reception.improve(1)
-    player.play_file("runtime/static.mp4")
+    player.play_file(APP_CONFIG.runtime_dir / "static.mp4")
     while not reception.is_perfect():
         reception.improve()
         player.update_filters()

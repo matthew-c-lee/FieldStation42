@@ -1,0 +1,55 @@
+catalog:
+  channel_1:
+    prime:
+      show_1:
+        season_1:
+          Rick and Morty S01E01.mp4:
+            duration: 1200
+            color: "blue"
+          Rick and Morty S01E02.mp4:
+            duration: 1250
+            color: "blue"
+        season_2:
+          Rick and Morty S02E01.mp4:
+            duration: 1200
+            color: "blue"
+      spongebob:
+        Spongebob S01E01.mp4:
+          duration: 1200
+          color: "blue"
+        Spongebob S01E02.mp4:
+          duration: 1200
+          color: "blue"
+    Avatar:
+      prime:
+        Avatar S01E01.mp4:
+          duration: 1200
+          color: "red"
+        Avatar S01E02.mp4:
+          duration: 1200
+          color: "red"
+        Avatar S01E03.mp4:
+          duration: 1200
+          color: "red"
+
+    commercials:
+      commercial_1.mp4:
+        duration: 30
+        color: "green"
+      commercial_2.mp4:
+        duration: 20
+        color: "green"
+      commercial_3.mp4:
+        duration: 10
+        color: "green"
+
+    bumps:
+      bump_1.mp4:
+        duration: 5
+        color: "purple"
+      bump_2.mp4:
+        duration: 10
+        color: "purple"
+      bump_2.mp4:
+        duration: 15
+        color: "purple"

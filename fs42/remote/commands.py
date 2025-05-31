@@ -2,13 +2,11 @@ import json
 import os
 import time
 import traceback
-
-SOCKET_PATH = "runtime/channel.socket"
-STATUS_SOCKET_PATH = "runtime/play_status.socket"  # Update with real path
+from config.config import APP_CONFIG
 
 def read_status():
     try:
-        with open(STATUS_SOCKET_PATH, "r") as fifo:
+        with open(APP_CONFIG.status_socket_path, "r") as fifo:
             line = fifo.readline()
             status = json.loads(line)
             return {
@@ -25,9 +23,9 @@ def write_command(message: dict):
     message = json.dumps(message) + "\n"
     print("Writing to FIFO:", message)
 
-    if not os.path.exists(SOCKET_PATH):
-        raise Exception(f"FIFO not found: {SOCKET_PATH}")
-    with open(SOCKET_PATH, "w") as fifo:
+    if not os.path.exists(APP_CONFIG.channel_socket_path):
+        raise Exception(f"FIFO not found: {APP_CONFIG.channel_socket_path}")
+    with open(APP_CONFIG.channel_socket_path, "w") as fifo:
         fifo.write(message)
         fifo.flush()
 
