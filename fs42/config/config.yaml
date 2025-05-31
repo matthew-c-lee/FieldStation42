@@ -1,1 +1,2 @@
 config_dir: "confs"
+runtime_dir: "runtime"

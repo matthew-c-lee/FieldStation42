@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import yaml
 
 class _ConfigModel(BaseModel):
-    config_dir: Path = Path("confs")         # default value
+    config_dir: Path = Path("confs")
     runtime_dir: Path = Path("runtime")
 
     @property

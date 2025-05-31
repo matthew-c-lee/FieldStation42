@@ -27,11 +27,17 @@ def run_ffmpeg(output_file: Path, color: str, duration: float, extension: str):
     # Handle different output formats
     match extension:
         case ".mp4":
-            cmd += ["-c:v", "libx264", "-crf", "30", "-preset", "veryslow"]
+            cmd += [
+                "-c:v", "libx264", 
+                "-crf", "51", # lowest quality
+                "-tune", "zerolatency",   # skip look‑ahead, B‑frames, etc.
+                "-x264-params", "keyint=1",  # all‑I frames (no inter‑frame search)
+                "-preset", "ultrafast",
+            ]
         case ".webm":
             cmd += ["-c:v", "libvpx", "-b:v", "1M"]
         case ".mkv":
-            cmd += ["-c:v", "libx264", "-crf", "30", "-preset", "veryslow"]
+            cmd += ["-c:v", "libx264", "-crf", "30", "-preset", "ultrafast"]
         case _:
             raise ValueError(f"Unsupported video extension: {extension}")
 

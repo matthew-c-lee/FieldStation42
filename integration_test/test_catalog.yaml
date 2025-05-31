@@ -31,15 +31,33 @@ catalog:
         Avatar S01E03.mp4:
           duration: 1200
           color: "red"
+        Avatar S01E04.mp4:
+          duration: 1200
+          color: "red"
 
     commercials:
       commercial_1.mp4:
         duration: 30
         color: "green"
       commercial_2.mp4:
-        duration: 20
+        duration: 15
         color: "green"
       commercial_3.mp4:
+        duration: 60
+        color: "green"
+      commercial_4.mp4:
+        duration: 45
+        color: "green"
+      commercial_5.mp4:
+        duration: 22
+        color: "green"
+      commercial_6.mp4:
+        duration: 16
+        color: "green"
+      commercial_7.mp4:
+        duration: 20
+        color: "green"
+      commercial_8.mp4:
         duration: 10
         color: "green"
 
@@ -50,6 +68,18 @@ catalog:
       bump_2.mp4:
         duration: 10
         color: "purple"
-      bump_2.mp4:
+      bump_3.mp4:
+        duration: 4
+        color: "purple"
+      bump_4.mp4:
+        duration: 6
+        color: "purple"
+      bump_5.mp4:
+        duration: 8
+        color: "purple"
+      bump_6.mp4:
+        duration: 5
+        color: "purple"
+      bump_7.mp4:
         duration: 15
         color: "purple"

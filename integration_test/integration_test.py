@@ -13,9 +13,11 @@ update_config(
 def test_field_player():
     generate_catalog()
 
+
+    # station_42.start_catalog(delete_schedules=True)
     station_42.start_catalog(graphical_interface=False, rebuild_catalog=True, add_week=True)
 
 
 if __name__ == "__main__":
-    test_field_player()
+    # test_field_player()
     field_player.main_loop(transition_fn=field_player.short_change_effect)

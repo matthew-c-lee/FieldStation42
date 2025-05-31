@@ -4,7 +4,7 @@
     "channel_number": 7,
 
     "network_type": "standard",
-    "schedule_increment": 10,
+    "schedule_increment": 30,
     "break_strategy": "standard",
     "commercial_free": false, 
 
