@@ -73,8 +73,6 @@ def test_catalog(catalog_setup):
     output_dir = Path("integration_test/catalog")
     generate_catalog(catalog=catalog, output_dir=output_dir)
 
-    # station_42.start_catalog(delete_schedules=True)
-
     # This will result in a binary file "channel_1_schedule.bin"
     station_42.start_catalog(graphical_interface=False, rebuild_catalog=True)
 
@@ -149,7 +147,7 @@ def test_catalog(catalog_setup):
     
     assert channel_data == expected_channel_data
 
-    # Test catalog!
+    # Test schedule!
     station_42.start_catalog(graphical_interface=False, add_hour=True)
 
     with open(channel_schedule_binary_path, "rb") as file:
@@ -161,6 +159,9 @@ def test_catalog(catalog_setup):
     ]
 
     assert channel_schedule_data == expected_channel_schedule_data
+
+def test_player():
+    pass
 
 
 if __name__ == "__main__":
