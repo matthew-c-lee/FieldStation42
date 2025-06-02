@@ -29,7 +29,7 @@ def catalog_setup():
     station_42.start_catalog(graphical_interface=False, delete_schedules=True)
 
 @freeze_time(time_to_freeze=datetime(2025, 6, 1, 12, 0, 0))
-def test_field_player(catalog_setup):
+def test_catalog(catalog_setup):
     catalog = {
         "catalog": {
             "channel_1": {
