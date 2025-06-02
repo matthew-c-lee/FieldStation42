@@ -270,11 +270,6 @@ def test_player(running_player):
     print(playing_path)
     
     assert playing_path == "integration_test/catalog/channel_2/commercials/commercial_c.mp4"
-
-    # Switch to channel 2
-    socket_path = Path("integration_test/runtime/channel.socket")
-    with open(socket_path, "w") as f:
-        json.dump({"command": "direct", "channel": 2}, f)
     
 
 if __name__ == "__main__":
