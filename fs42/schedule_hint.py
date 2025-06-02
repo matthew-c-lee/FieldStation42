@@ -4,9 +4,7 @@ import re
 
 from fs42 import timings
 from fs42 import station_manager
-
-
-
+from pydantic import BaseModel, field_validator
 
 #all temporal hints should implement this interface
 class TemporalHint:
@@ -22,21 +20,29 @@ class TemporalHint:
     def hint(self, when):
         return True
 
-class DayPartHint:
+class DayPartHint(BaseModel):
+    part_name: str
 
-    def __init__(self, part_name):
-        self.part = station_manager.StationManager().get_day_parts()[part_name]
-        self.part_name = part_name
+    @property
+    def part(self) -> range | list[int]:
+        return station_manager.StationManager().get_day_parts()[self.part_name]
 
-    @staticmethod
-    def test_pattern(to_test):
-        return to_test in station_manager.StationManager().get_day_parts().keys()
-
-    def hint(self, when):
-        return when.hour in self.part 
+    def hint(self, when: datetime) -> bool:
+        return when.hour in self.part
 
     def __str__(self):
-        return f"{self.part_name}"
+        return self.part_name
+
+    @staticmethod
+    def test_pattern(to_test: str) -> bool:
+        return to_test in station_manager.StationManager().get_day_parts()
+
+    @field_validator("part_name")
+    @classmethod
+    def validate_part_name(cls, v: str):
+        if v not in station_manager.StationManager().get_day_parts():
+            raise ValueError(f"Unknown day part name: {v}")
+        return v
     
 class BumpHint:
     pre = "pre"

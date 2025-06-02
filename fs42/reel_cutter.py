@@ -8,14 +8,14 @@ class ReelCutter:
         break_count = 0
 
         if start_bump:
-            entries.append(BlockPlanEntry(start_bump.path, 0, start_bump.duration))
+            entries.append(BlockPlanEntry(path=start_bump.path, skip=0, duration=start_bump.duration))
 
         if reel_blocks:
             break_count = len(reel_blocks)
 
         if break_count <= 1 or break_stratgy == "end":
             # then don't cut the base at all
-            entries.append(BlockPlanEntry(base_clip.path, base_offset, base_duration))
+            entries.append(BlockPlanEntry(path=base_clip.path, skip=base_offset, duration=base_duration))
             for _block in reel_blocks:
                 # and put the reel at the end if there is one
                 entries += _block.make_plan()
@@ -24,12 +24,12 @@ class ReelCutter:
             offset = base_offset
 
             for i in range(break_count):
-                entries.append(BlockPlanEntry(base_clip.path, offset, segment_duration))
+                entries.append(BlockPlanEntry(path=base_clip.path, skip=offset, duration=segment_duration))
                 entries += reel_blocks[i].make_plan()
                 offset += segment_duration
 
         if end_bump:
-            entries.append(BlockPlanEntry(end_bump.path, 0, end_bump.duration))
+            entries.append(BlockPlanEntry(path=end_bump.path, skip=0, duration=end_bump.duration))
 
         return entries
 
@@ -38,7 +38,7 @@ class ReelCutter:
         entries = []
 
         if start_bump:
-            entries.append(BlockPlanEntry(start_bump.path, 0, start_bump.duration))
+            entries.append(BlockPlanEntry(path=start_bump.path, skip=0, duration=start_bump.duration))
 
         if reel_blocks:
             break_count = len(reel_blocks)
@@ -47,7 +47,7 @@ class ReelCutter:
         if break_count <= 1 or break_stategy == "end":
             # then don't cut the base at all
             for clip in clips:
-                entries.append(BlockPlanEntry(clip.path, 0, clip.duration))
+                entries.append(BlockPlanEntry(path=clip.path, skip=0, duration=clip.duration))
             for _block in reel_blocks:
                 # and put the reel at the end if there is one
                 entries += _block.make_plan()
@@ -58,7 +58,7 @@ class ReelCutter:
 
             for i in range(len(clips)):
                 clip = clips[i]
-                entries.append(BlockPlanEntry(clip.path, 0, clip.duration))
+                entries.append(BlockPlanEntry(path=clip.path, skip=0, duration=clip.duration))
                 if len(reel_blocks) and (i % clips_per_segment) == 0:
                     reel_b = reel_blocks.pop(0)
                     entries += reel_b.make_plan()
@@ -68,6 +68,6 @@ class ReelCutter:
                 entries += reel_b.make_plan()
 
         if end_bump:
-            entries.append(BlockPlanEntry(end_bump.path, 0, end_bump.duration))
+            entries.append(BlockPlanEntry(path=end_bump.path, skip=0, duration=end_bump.duration))
 
         return entries

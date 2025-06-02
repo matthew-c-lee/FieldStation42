@@ -1,12 +1,9 @@
 import subprocess
-import yaml
 from pathlib import Path
 import shutil
 from dataclasses import dataclass
 
-CATALOG_YAML = Path("integration_test/test_catalog.yaml")
-OUTPUT_DIR = Path("integration_test/catalog")
-
+# Constants
 RESOLUTION = "2x2"
 FPS = 1
 
@@ -24,14 +21,13 @@ def run_ffmpeg(output_file: Path, color: str, duration: float, extension: str):
         "-r", str(FPS),
     ]
 
-    # Handle different output formats
     match extension:
         case ".mp4":
             cmd += [
-                "-c:v", "libx264", 
-                "-crf", "51", # lowest quality
-                "-tune", "zerolatency",   # skip look‑ahead, B‑frames, etc.
-                "-x264-params", "keyint=1",  # all‑I frames (no inter‑frame search)
+                "-c:v", "libx264",
+                "-crf", "51",
+                "-tune", "zerolatency",
+                "-x264-params", "keyint=1",
                 "-preset", "ultrafast",
             ]
         case ".webm":
@@ -42,8 +38,7 @@ def run_ffmpeg(output_file: Path, color: str, duration: float, extension: str):
             raise ValueError(f"Unsupported video extension: {extension}")
 
     cmd.append(str(output_file))
-    subprocess.run(cmd, check=True)
-
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def try_parse_leaf(node) -> VideoEntry | None:
     if isinstance(node, dict) and {"duration", "color"} <= set(node.keys()):
@@ -58,7 +53,6 @@ def walk(node: dict, path: Path):
 
     for node_name, value in node.items():
         if isinstance(value, dict) and {"duration", "color"} <= set(value.keys()):
-            # key includes extension, e.g. "intro.mp4"
             file_name = node_name
             output_file = path / file_name
             ext = output_file.suffix.lower()
@@ -67,26 +61,18 @@ def walk(node: dict, path: Path):
             color = value["color"]
 
             print(f"  -> Generating {output_file} ({duration}s, {color})")
-
             run_ffmpeg(output_file, color, duration, ext)
 
         elif isinstance(value, dict):
             walk(value, path / node_name)
 
-def generate_catalog():
-    if OUTPUT_DIR.exists():
-        print(f"Cleaning up existing output directory: {OUTPUT_DIR}")
-        shutil.rmtree(OUTPUT_DIR)
+def generate_catalog(catalog: dict, output_dir: Path):
+    if output_dir.exists():
+        print(f"Cleaning up existing output directory: {output_dir}")
+        shutil.rmtree(output_dir)
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    
-    with open(CATALOG_YAML, "r") as f:
-        catalog = yaml.safe_load(f)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Generating catalog from {CATALOG_YAML}...")
-    walk(catalog["catalog"], OUTPUT_DIR)
+    print(f"Generating catalog to {output_dir} from provided dictionary...")
+    walk(catalog["catalog"], output_dir)
     print("Done.")
-
-
-if __name__ == "__main__":
-    generate_catalog()

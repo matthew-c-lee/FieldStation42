@@ -179,20 +179,20 @@ class ShowCatalog:
         if self.config.sign_off_video:
             self._l.debug("Adding sign-off video")
             video_clip = VideoFileClip(self.config.sign_off_video)
-            self.clip_index["sign_off"] = CatalogEntry(self.config.sign_off_video, video_clip.duration, "sign_off")
+            self.clip_index["sign_off"] = CatalogEntry(path=self.config.sign_off_video, duration=video_clip.duration, tag="sign_off")
             self._l.debug(f"Added sign-off video {self.config.sign_off_video}")
             total_count += 1
 
         if self.config.off_air_video:
             self._l.debug("Adding off air video")
             video_clip = VideoFileClip(self.config.off_air_video)
-            self.clip_index["off_air"] = CatalogEntry(self.config.off_air_video, video_clip.duration, "off_air")
+            self.clip_index["off_air"] = CatalogEntry(path=self.config.off_air_video, duration=video_clip.duration, tag="off_air")
             self._l.debug(f"Added off air video {self.config.off_air_video}")
             total_count += 1
 
         if self.config.off_air_image:
             self._l.debug("Adding offair image")
-            self.clip_index["off_air_image"] = CatalogEntry(self.config.off_air_image, MIN_5, "off_air")
+            self.clip_index["off_air_image"] = CatalogEntry(path=self.config.off_air_image, duration=MIN_5, tag="off_air")
             self._l.debug(f"Added off air image {self.config.off_air_image}")
             total_count += 1
 
@@ -441,7 +441,7 @@ class ShowCatalog:
             remaining -= candidate.duration
             reels.append(candidate)
 
-        return ReelBlock(start_candidate, reels, end_candidate)
+        return ReelBlock(start_bump=start_candidate, comms=reels, end_bump=end_candidate)
 
     def make_reel_fill(self, when, length, use_bumpers=True, bump_dir=None):
         remaining = length
@@ -474,7 +474,7 @@ class ShowCatalog:
                         keep_going = False
                         remaining = 0
 
-                blocks.append(ReelBlock(None, additional_reels, None))
+                blocks.append(ReelBlock(start_bump=None, comms=additional_reels, end_bump=None))
 
         return blocks
 

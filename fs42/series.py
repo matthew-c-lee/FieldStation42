@@ -1,18 +1,22 @@
 import math
 from pathlib import Path
+from pydantic import BaseModel
 
-class SequenceEntry:
-
-    def __init__(self, fpath: Path, scheduled=[], last_played=None):
-        self.fpath = fpath
-        self.next_scheduled = scheduled
-        self.last_played = last_played
+class SequenceEntry(BaseModel):
+    fpath: Path
+    next_scheduled: list = []
+    last_played: Path | None = None
+    
+    # def __init__(self, fpath: Path, scheduled=[], last_played=None):
+    #     self.fpath = fpath
+    #     self.next_scheduled = scheduled
+    #     self.last_played = last_played
 
 class SeriesIndex:
 
-    def __init__(self, tag_path, start_point=0, end_point=1 ):
+    def __init__(self, tag_path, start_point=0, end_point=1, _episodes: list[SequenceEntry] = []):
         self.tag_path = tag_path
-        self._episodes: list[SequenceEntry] = []
+        self._episodes: list[SequenceEntry] = _episodes
         self._index = -1
         if start_point < 0 or start_point > 1 or start_point > end_point:
             raise ValueError(f"Sequence start point for {tag_path} must be more than 0, less than 1 and less than sequence end. Check your configuration.")
@@ -22,13 +26,22 @@ class SeriesIndex:
         self._end_perc = end_point
         self.__defaults() 
 
+    def __repr__(self):
+        return (
+            f"SeriesIndex("
+            f"tag_path={self.tag_path!r}, "
+            f"start_point={self._start_perc!r}, "
+            f"end_point={self._end_perc!r}, "
+            f"_episodes={self._episodes!r})"
+        )
+
     @staticmethod
     def make_key(series_name, sequence_name):
         return f"{series_name}-{sequence_name}"
 
     def populate(self, file_list: list[Path]):
         for file in file_list:
-            entry = SequenceEntry(file)
+            entry = SequenceEntry(fpath=file)
             self._episodes.append(entry)
 
         #explicitely sort them by file path for alpha-numeric ordering:
@@ -85,3 +98,18 @@ class SeriesIndex:
             if episode.fpath == fpath:
                 return fpath
             
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SeriesIndex):
+            return NotImplemented
+        return (
+            self.tag_path == other.tag_path
+            and math.isclose(self._start_perc, other._start_perc)
+            and math.isclose(self._end_perc, other._end_perc)
+            and self._episode_paths() == other._episode_paths()
+        )
+    
+        # ---------- helper ----------
+    def _episode_paths(self) -> tuple[Path, ...]:
+        # tuple is immutable -> safe to hash
+        return tuple(e.fpath for e in self._episodes)

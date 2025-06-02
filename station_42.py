@@ -72,6 +72,7 @@ def start_catalog(
     add_week: bool = False,
     add_month: bool = False,
     add_day: bool = False,
+    add_hour: bool = False,
     schedule: bool = False,
     print_schedule: str | None = None,
     delete_schedules: bool = False,
@@ -166,7 +167,9 @@ def start_catalog(
                 logging.getLogger().info(f"Checking for schedule tasks for {station_conf.network_name}")
                 #schedule = station.make_weekly_schedule()
                 liquid = LiquidSchedule(station_conf)
-                if add_day:
+                if add_hour:
+                    liquid.add_hours(1)
+                elif add_day:
                     liquid.add_days(1)
                 elif add_week:
                     liquid.add_week()

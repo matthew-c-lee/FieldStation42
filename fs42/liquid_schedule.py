@@ -81,7 +81,7 @@ class LiquidSchedule:
         for i in range(diff.days):
             current_mark = start_time + datetime.timedelta(days=i)
             next_mark = start_time + datetime.timedelta(days=i + 1)
-            block = LiquidLoopBlock(content, current_mark, next_mark, self.conf.network_name)
+            block = LiquidLoopBlock(content=content, start_time=current_mark, end_time=next_mark, title=self.conf.network_name)
             new_blocks.append(block)
 
         self._l.info(f"Building plans for {len(new_blocks)} new schedule blocks")
@@ -140,7 +140,12 @@ class LiquidSchedule:
                         next_mark = current_mark + datetime.timedelta(seconds=target_duration)
 
                         new_block = LiquidBlock(
-                            candidate, current_mark, next_mark, candidate.title, self.conf.break_strategy, bump_info
+                            content=candidate, 
+                            start_time=current_mark, 
+                            end_time=next_mark, 
+                            title=candidate.title, 
+                            break_strategy=self.conf.break_strategy, 
+                            bump_info=bump_info,
                         )
                         # add sequence information
                         if seq_key:
@@ -158,7 +163,7 @@ class LiquidSchedule:
                         sys.exit(-1)
                     else:
                         clip_block = LiquidClipBlock(
-                            clip_content, current_mark, timings.HOUR, tag_str, self.conf.break_strategy, bump_info
+                            content=clip_content, start_time=current_mark, end_time=timings.HOUR, title=tag_str, break_strategy=self.conf.break_strategy, bump_info=bump_info
                         )
                         target_duration = self._calc_target_duration(clip_block.content_duration())
                         next_mark = current_mark + datetime.timedelta(seconds=target_duration)
@@ -177,7 +182,7 @@ class LiquidSchedule:
                 # make it for one hour.
                 # TODO: handle when it starts at half hour - just go to next hour (not always one hour)
                 next_mark = (current_mark + datetime.timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-                new_block = LiquidOffAirBlock(candidate, current_mark, next_mark, "Offair")
+                new_block = LiquidOffAirBlock(content=candidate, start_time=current_mark, end_time=next_mark, title="Offair")
 
             # here
             new_blocks.append(new_block)
@@ -193,7 +198,7 @@ class LiquidSchedule:
         self._l.info("Saving blocks to disk")
         self._save_blocks()
 
-    def _increment(self, how_much):
+    def _increment(self, how_much: str):
         # add time to the existing schedule
         # firsst, get the current end-of-schedule
         current_end = self._end_time()
@@ -208,6 +213,8 @@ class LiquidSchedule:
             start_building = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         match how_much:
+            case "hour":
+                end_building = start_building + datetime.timedelta(hours=1)
             case "day":
                 end_building = start_building + datetime.timedelta(days=1)
             case "week":
@@ -223,8 +230,12 @@ class LiquidSchedule:
             case "guide":
                 raise NotImplementedError("Guide schedules are not yet supported for schedules")
 
-    def add_days(self, day_count):
-        for i in range(day_count):
+    def add_hours(self, hour_count: int):
+        for _ in range(hour_count):
+            self._increment("hour")
+
+    def add_days(self, day_count: int):
+        for _ in range(day_count):
             self._increment("day")
 
     def add_week(self):

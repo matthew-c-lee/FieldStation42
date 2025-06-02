@@ -50,7 +50,7 @@ class MediaProcessor:
                     _l.warning("Files with 0 length can't be added to the catalog.")
                     failed.append(fname)
                 else:
-                    show_clip = CatalogEntry(fname, duration, tag, hints)
+                    show_clip = CatalogEntry(path=fname, duration=duration, tag=tag, hints=hints)
                     show_clip_list.append(show_clip)
                     _l.debug(f"--_process_media is done with {fname}: {show_clip}")
 
@@ -120,7 +120,7 @@ class MediaProcessor:
         if RangeHint.test_pattern(base):
             hints.append(RangeHint(base))
         if DayPartHint.test_pattern(base):
-            hints.append(DayPartHint(base))
+            hints.append(DayPartHint(part_name=base))
         if bumpdir:
             if BumpHint.test_pattern(base):
                 hints.append(BumpHint(base))
