@@ -28,11 +28,7 @@ def get_temperature():
 
 class CableBox:
 
-    def __init__(self, channel_socket = APP_CONFIG.channel_socket_path, status_socket = APP_CONFIG.status_socket_path):
-
-        self.channel_socket = channel_socket
-        self.status_socket = status_socket
-
+    def __init__(self):
         self.tm = tm1637.TM1637(clk=17, dio=18)
         self.tm.brightness(0)
         self.tm.show("FS42")
@@ -73,12 +69,12 @@ class CableBox:
             self.temp_mode = True
         else:
             print(f"Sending command: {as_str}")
-            with open(self.channel_socket, "w") as fp:
+            with open(APP_CONFIG.channel_socket_path, "w") as fp:
                 fp.write(as_str)
 
     def check_status(self):
         new_stat = None
-        with open(self.status_socket) as fp:
+        with open(APP_CONFIG.status_socket_path) as fp:
             as_str = fp.read()
 
             if as_str != self.last_stat:

@@ -43,9 +43,9 @@ class StatusDisplay(object):
 
         self.time_since_change = 0
 
-        self.check_status()
+        self.check_status(socket_file=APP_CONFIG.channel_socket_path)
 
-    def check_status(self, socket_file=APP_CONFIG.channel_socket_path):
+    def check_status(self, socket_file):
         with open(socket_file, "r") as f:
             status = f.read()
             try:
@@ -62,7 +62,7 @@ class StatusDisplay(object):
 
     def update(self, dt):
         self.time_since_change += dt
-        self.check_status()
+        self.check_status(socket_file=APP_CONFIG.channel_socket_path)
 
     def draw(self):
         if self.time_since_change < self.config.display_time:

@@ -14,11 +14,12 @@ from fs42.reception import ReceptionStatus
 from fs42.liquid_manager import LiquidManager, PlayPoint
 from fs42.types.models import StationConfig
 from fs42.station_manager import StationManager
+from fs42.config.config import APP_CONFIG
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s', level=logging.INFO)
 
 def check_channel_socket():
-    channel_socket = StationManager().server_conf.channel_socket
+    channel_socket = APP_CONFIG.channel_socket_path
     r_sock = open(channel_socket, "r")
     contents = r_sock.read()
     r_sock.close()
@@ -37,7 +38,7 @@ def update_status_socket(status, network_name, channel, title=None,timestamp="%Y
     }
     if title is not None:
         status_obj["title"] = title
-    status_socket = StationManager().server_conf.status_socket
+    status_socket = APP_CONFIG.status_socket_path
     as_str = json.dumps(status_obj)
     with open(status_socket, "w") as fp:
         fp.write(as_str)
@@ -63,9 +64,9 @@ class StationPlayer:
             self._l.info("Starting MPV instance")
             #command on client: mpv --input-ipc-server=/tmp/mpvsocket --idle --force-window
             self.mpv = MPV(start_mpv=True, ipc_socket="/tmp/mpvsocket",
-                           input_default_bindings=False, fs=True,
-                           idle=True, force_window=True,
-                           script_opts="osc-idlescreen=no" )
+                        input_default_bindings=False, fs=True,
+                        idle=True, force_window=True,
+                        script_opts="osc-idlescreen=no" )
         self.station_config = station_config
         #self.playlist = self.read_json(runtime_filepath)
         self.index = 0

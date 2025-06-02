@@ -21,7 +21,7 @@ def main_loop(transition_fn):
     logger = logging.getLogger("MainLoop")
     logger.info("Starting main loop")
 
-    channel_socket = StationManager().server_conf.channel_socket
+    channel_socket = APP_CONFIG.channel_socket_path
 
     #go ahead and clear the channel socket (or create if it doesn't exist)
     with open(channel_socket, 'w'):

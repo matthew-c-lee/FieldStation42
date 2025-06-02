@@ -11,7 +11,7 @@ from fs42 import series
 class ScheduleNotFound(Exception):
     pass
 
-class SheduleQueryNotInBounds(Exception):
+class ScheduleQueryNotInBounds(Exception):
     pass
 
 class PlayPoint():
@@ -124,7 +124,7 @@ class LiquidManager(object):
             raise ScheduleNotFound(f"Schedule doesn't exist for {network_name}")
         #handle not in bounds
         elif start > when or end < when:
-            raise SheduleQueryNotInBounds(f"Query for {network_name} programming at {when} failes because schedule is from {start} to {end}")
+            raise ScheduleQueryNotInBounds(f"Query for {network_name} programming at {when} fails because schedule is from {start} to {end}")
         #handle expected case
         else:
             #go through each block until we find the correct position (when > block start and < block end)

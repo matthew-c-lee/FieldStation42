@@ -49,8 +49,6 @@ class StationConfig(BaseModel):
         return self
     
 class ServerConfig(BaseModel):
-    channel_socket: Path = APP_CONFIG.channel_socket_path
-    status_socket: Path = APP_CONFIG.status_socket_path
     day_parts: dict[str, range | list[int]] = Field(default_factory=lambda: {
         "morning"   : range(6,10),
         "daytime"   : range(10,18),
